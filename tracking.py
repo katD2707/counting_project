@@ -5,9 +5,10 @@ from utils import data, boxes
 
 
 class Tracking:
-    def __init__(self, model, tracker, args):
+    def __init__(self, model, tracker, polygons, args):
         self.model = model
         self.tracker = tracker
+        self.polygons = polygons
         self.setting = args
 
     def load_model(self, weights_path, classes, device='cpu'):
@@ -57,7 +58,6 @@ class Tracking:
                                  agnostic=False,
                                  )
 
-
     def detect(self, img, track=False):
         with torch.no_grad():
             org_img, img = self._preprocess_image(img)
@@ -73,3 +73,4 @@ class Tracking:
                             [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3]), round(float(conf), 2), int(cls)]]))
 
             raw_detection = self.tracker.update(raw_detection)
+

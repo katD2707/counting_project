@@ -10,7 +10,11 @@ import csv
 import cv2
 import sys
 import os
-# from
+import torch
+
+
+from tracking import Tracking
+from yolox.exp import get_exp
 
 # execution start time
 start_time = time.time()
@@ -24,8 +28,8 @@ def parse_arguments():
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--config", required=True,
                     help="path to config file")
-    ap.add_argument("-p", )
-    ap.add_argument("-m", )
+    ap.add_argument("-f", "--exp_file", type=str, default="yolox/version/mot/yolox_tiny_mix_det.py")
+    ap.add_argument("-ckpt", type=str, default="weights/bytetrack_tiny_mot17.pth")
     ap.add_argument("-i", "--input", type=str,
                     help="path to optional input video file")
     ap.add_argument("-o", "--output", type=str,
@@ -38,6 +42,7 @@ def parse_arguments():
 def main():
     # main function for people_counter.py
     args = parse_arguments()
+    exp = get_exp(args.exp_file, args.name)
 
     # if a video path was not supplied, give a reference to the ip camera
     if not args.get("input", False):
@@ -68,5 +73,25 @@ def main():
     # the first frame from the video)
     width = None
     height = None
+
+
+    # Initialize model
+    model = exp.get_model()
+
+    model.cuda()
+    model.eval()
+
+    if args.ckpt:
+        logger.info("loading checkpoint")
+        ckpt = torch.load(args.ckpt, map_location="cuda:0")
+        # load the model state dict
+        model.load_state_dict(ckpt["model"])
+        logger.info("loaded checkpoint done.")
+
+
+
+    # track = Tracking()
+
+
 
 
