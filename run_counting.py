@@ -34,7 +34,7 @@ def parse_arguments():
                     help="path to optional input video file")
     ap.add_argument("-o", "--output", type=str,
                     help=" path to optional output video file")
-    args = vars(ap.parse_args())
+    args = ap.parse_args()
 
     return args
 
