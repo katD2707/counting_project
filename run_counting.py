@@ -34,6 +34,8 @@ def parse_arguments():
                     help="path to optional input video file")
     ap.add_argument("-o", "--output", type=str,
                     help=" path to optional output video file")
+    ap.add_argument("-n", "--name", type=str,
+                    help=" path to optional output video file")
     args = ap.parse_args()
 
     return args
@@ -94,4 +96,5 @@ def main():
 
 
 
-
+if __name__ == "__main__":
+    main()
