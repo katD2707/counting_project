@@ -11,18 +11,18 @@ class Tracking:
         self.polygons = polygons
         self.setting = args
 
-    def load_model(self, weights_path, classes, device='cpu'):
-        with torch.no_grad():
-            self.device = select_device(device)
-            self.model = attempt_load(weights_path, device=self.device)
-
-            if device != "cpu":
-                self.model.half()
-                self.model.to(self.device).eval()
-
-            stride = int(self.model.stride.max())
-            self.img_size = check_img_size()
-            self.classes = yaml.load(open(classes), Loader=yaml.SafeLoader)["classes"]
+    # def load_model(self, weights_path, classes, device='cpu'):
+    #     with torch.no_grad():
+    #         self.device = select_device(device)
+    #         self.model = attempt_load(weights_path, device=self.device)
+    #
+    #         if device != "cpu":
+    #             self.model.half()
+    #             self.model.to(self.device).eval()
+    #
+    #         stride = int(self.model.stride.max())
+    #         self.img_size = check_img_size()
+    #         self.classes = yaml.load(open(classes), Loader=yaml.SafeLoader)["classes"]
 
     def unload(self):
         if self.device.type != "cpu":
@@ -72,5 +72,5 @@ class Tracking:
                         raw_detection = np.concatenate((raw_detection, [
                             [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3]), round(float(conf), 2), int(cls)]]))
 
-            raw_detection = self.tracker.update(raw_detection)
+            # raw_detection = self.tracker.update(raw_detection)
 

@@ -12,7 +12,7 @@ from yolox.utils import (
     time_synchronized,
     xyxy2xywh
 )
-from byte_tracker.tracker.byte_tracker import BYTETracker
+from tracker.byte_tracker.byte_tracker import BYTETracker
 
 import contextlib
 import io
@@ -128,7 +128,7 @@ class MOTEvaluator:
             progress_bar(self.dataloader)
         ):
             with torch.no_grad():
-                # init tracker
+                # init byte_tracker
                 frame_id = info_imgs[2].item()
                 video_id = info_imgs[3].item()
                 img_file_name = info_imgs[4]
