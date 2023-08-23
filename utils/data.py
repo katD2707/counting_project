@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import math
+import yaml
 
 
 # padding image following stride
@@ -35,3 +37,22 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
     img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
     return img
 
+
+def make_divisible(x, divisor):
+    # Returns x evenly divisible by divisor
+    return math.ceil(x / divisor) * divisor
+
+
+def check_img_size(img_size, stride=32):
+    # Verify img_size is a multiple of stride s
+    new_size = make_divisible(img_size, int(stride))  # ceil gs-multiple
+    if new_size != img_size:
+        print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, stride, new_size))
+    return new_size
+
+
+def class2id(classes_path):
+    classes = {}
+    for idx, class_ in enumerate(yaml.load(open(classes_path), Loader=yaml.SafeLoader)["classes"]):
+        classes[class_["name"]] = idx
+    return classes

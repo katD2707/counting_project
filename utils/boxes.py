@@ -63,13 +63,13 @@ def postprocess(prediction, conf_thre=0.7, nms_thre=0.45, multi_label=False, agn
         # Box (center x, center y, width, height) to (x1, y1, x2, y2)
         box = xywh2xyxy(x[:, :4])
 
-        # Detections matrix nx6 (xyxy, conf, cls)
+        # Detections matrix nx6 (xyxy, conf_score, cls_pred)
         if multi_label:
             i, j = (x[:, 5:] > conf_thre).nonzero(as_tuple=False).T
             x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
-            conf, j = x[:, 5:].max(1, keepdim=True)
-            x = torch.cat((box, conf, j.float()), 1)[conf.view(-1) > conf_thre]
+            class_conf, class_pred = x[:, 5:].max(1, keepdim=True)
+            x = torch.cat((box, class_conf, class_pred.float()), 1)[class_conf.view(-1) > conf_thre]
 
         # Check shape
         n = x.shape[0]  # number of boxes
@@ -79,18 +79,28 @@ def postprocess(prediction, conf_thre=0.7, nms_thre=0.45, multi_label=False, agn
             x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence
 
         # Batched NMS
-        c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
-        i = torchvision.ops.nms(boxes, scores, nms_thre)  # NMS
+        nms_out_index = torchvision.ops.batched_nms(
+            x[:, :4],
+            x[:, 4],
+            x[:, 6],
+            nms_thre,
+        )
 
-        if i.shape[0] > max_det:  # limit detections
-            i = i[:max_det]
+        if nms_out_index.shape[0] > max_det:  # limit detections
+            nms_out_index = nms_out_index[:max_det]
 
-        output[xi] = x[i]
+        x = x[nms_out_index]
+
+        if output[xi] is None:
+            output[xi] = x
+        else:
+            output[xi] = torch.cat((output[xi], x))
+
         if (time.time() - t) > time_limit:
             print(f'WARNING: NMS time limit {time_limit}s exceeded')
             break  # time limit exceeded
 
+    # Return detected boxes in order: x1, y1, x2, y2, score, class
     return output
 
 
@@ -183,3 +193,10 @@ def xyxy2cxcywh(bboxes):
     bboxes[:, 0] = bboxes[:, 0] + bboxes[:, 2] * 0.5
     bboxes[:, 1] = bboxes[:, 1] + bboxes[:, 3] * 0.5
     return bboxes
+
+
+def tlwh2xyxy(bbox):
+    bbox[2] = bbox[:, 0] + bbox[2]
+    bbox[:, 3] = bbox[:, 1] + bbox[:, 3]
+
+    return bbox
