@@ -11,9 +11,7 @@ import cv2
 import sys
 import os
 import torch
-import imutils
 import datetime
-from imutils.video import FPS
 
 from tracking import Tracking
 from yolox.exp import get_exp
