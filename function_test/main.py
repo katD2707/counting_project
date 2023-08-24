@@ -11,5 +11,7 @@ while True:
     # break
     cv2.waitKey(1)
 
-
+# import torch
+#
+# print(torch.cuda.is_available())
 

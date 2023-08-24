@@ -30,7 +30,7 @@ def parse_arguments():
                     help="path to config file")
     ap.add_argument("-f", "--exp_file", type=str, default="yolox/version/mot/yolox_tiny_mix_det.py")
     ap.add_argument("-ckpt", type=str, default="weights/bytetrack_tiny_mot17.pth")
-    ap.add_argument("-i", "--input", type=str, default=0,
+    ap.add_argument("-i", "--input", type=str, default="video_test/market-square.mp4",
                     help="path to optional input video file")
     ap.add_argument("-o", "--output", type=str,
                     help=" path to optional output video file")
@@ -86,6 +86,7 @@ def main(logger):
     track.load_model(weights_path=args.ckpt, classes=args.classes_path, device=args.device)
     track.init_drawer(polygons=POLYGONS)
 
+    '''
     # loop over frames from the video stream
     while True:
         # grab the next frame and handle if we are reading from either
@@ -114,7 +115,7 @@ def main(logger):
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
-
+    '''
     # close any open windows
     cv2.destroyAllWindows()
     track.unload()
