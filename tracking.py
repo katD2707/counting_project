@@ -29,7 +29,8 @@ class Tracking:
                 self.model.load_state_dict(ckpt["model"])
                 self.logger.info("loaded checkpoint done.")
 
-            stride = int(self.model.stride.max())
+            stride = self.model.strides.max()
+
             self.image_size_wh = check_img_size(self.video_info.resolution_wh, stride=stride)
             self.classes = class2id(classes_path=classes)
 
@@ -75,9 +76,10 @@ class Tracking:
 
     def _preprocess_image(self, img):
         img0 = img.copy()
-        img = letterbox(img0, self.image_size_wh[::-1], auto=self.image_size_wh!=1280)
+        img = letterbox(img, self.image_size_wh[::-1], auto=self.image_size_wh!=1280)
         img = img[:, :, ::-1]
-        img /= 255.0
+
+        img = np.divide(img, 255.0, casting="unsafe")
         if self.setting.rgb_means:
             img -= (0.485, 0.456, 0.406),
         if self.setting.rgb_std:
@@ -135,7 +137,7 @@ class Tracking:
         '''
         # Track a specific class
         if class_name:
-            preds = preds[preds[5]==self.classes[class_name]]
+            preds = preds[preds[:, 5]==self.classes[class_name]]
 
         # Return list of STrack objects
         online_targets = self.tracker.update(preds, self.image_size_wh, self.image_size_wh)
