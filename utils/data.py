@@ -20,7 +20,8 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
     ratio = r, r  # width, height ratios
     new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
     dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
-    if auto:  # minimum rectangle
+
+    if auto.all():  # minimum rectangle
         dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
     elif scaleFill:  # stretch
         dw, dh = 0.0, 0.0
@@ -40,14 +41,14 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
 
 def make_divisible(x, divisor):
     # Returns x evenly divisible by divisor
-    return math.ceil(x / divisor) * divisor
+    return np.ceil(x / divisor) * divisor
 
 
 def check_img_size(img_size, stride=32):
     # Verify img_size is a multiple of stride s
     new_size = make_divisible(img_size, int(stride))  # ceil gs-multiple
-    if new_size != img_size:
-        print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, stride, new_size))
+    if (new_size != img_size).any():
+        print('WARNING: --img-size %s must be multiple of max stride %g, updating to %s' % (str(img_size), stride, str(new_size)))
     return new_size
 
 

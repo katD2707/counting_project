@@ -6,7 +6,7 @@ import torch.nn as nn
 
 from .yolo_head import YOLOXHead
 from .yolo_pafpn import YOLOPAFPN
-
+import numpy as np
 
 class YOLOX(nn.Module):
     """
@@ -24,6 +24,7 @@ class YOLOX(nn.Module):
 
         self.backbone = backbone
         self.head = head
+        self.strides = np.array(self.head.strides)
 
     def forward(self, x, targets=None):
         # fpn output content features of [dark3, dark4, dark5]

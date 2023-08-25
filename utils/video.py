@@ -49,5 +49,14 @@ class VideoInfo:
         return VideoInfo(width, height, fps, total_frames)
 
     @property
-    def resolution_wh(self) -> Tuple[int, int]:
-        return self.width, self.height
+    def resolution_wh(self):
+        return np.array([self.width, self.height])
+
+
+def rescale_frame(frame, percent=75):
+    width = int(frame.shape[1] * percent / 100)
+    height = int(frame.shape[0] * percent / 100)\
+
+    dim = (width, height)
+
+    return cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
