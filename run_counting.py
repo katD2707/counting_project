@@ -15,9 +15,9 @@ import datetime
 
 from tracking import Tracking
 from yolox.exp import get_exp
-from tracker.byte_tracker.byte_tracker import BYTETracker
-from tracker.center_tracker.centroid_tracker import CentroidTracker
-from tracker.center_tracker.trackableobject import TrackableObject
+# from tracker.byte_tracker.byte_tracker import BYTETracker
+# from tracker.center_tracker.centroid_tracker import CentroidTracker
+# from tracker.center_tracker.trackableobject import TrackableObject
 from utils.video import VideoInfo
 
 
@@ -26,17 +26,16 @@ POLYGONS = []
 def parse_arguments():
     # function to parse the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-c", "--config", required=True,
+    ap.add_argument("-c", "--config", required=False,
                     help="path to config file")
     ap.add_argument("-f", "--exp_file", type=str, default="yolox/version/mot/yolox_tiny_mix_det.py")
-    ap.add_argument("-ckpt", type=str, default="weights/bytetrack_tiny_mot17.pth")
+    ap.add_argument("-ckpt", type=str, default="weights/bytetrack_tiny_mot17.pth.tar")
     ap.add_argument("-i", "--input", type=str, default="video_test/market-square.mp4",
                     help="path to optional input video file")
-    ap.add_argument("-o", "--output", type=str,
+    ap.add_argument("-o", "--output_path", type=str,
                     help=" path to optional output video file")
     ap.add_argument("-n", "--name", type=str, default=None,
-                    help=" path to optional output video file")
-    ap.add_argument("-n", "--name", type=str, default="yolox/version/mot/yolox_tiny_mix_det.py")
+                    help="Experiment name")
     ap.add_argument("-cp", "--classes_path", type=str, default="classes\coco.yaml")
     ap.add_argument("-d", "--device", type=str, default="cuda:0")
 
@@ -51,7 +50,7 @@ def main(logger):
     exp = get_exp(args.exp_file, args.name)
 
     # if a video path was not supplied, give a reference to the ip camera
-    if not args.get("input", False):
+    if not args.input:
         logger.info("Starting the live stream...")
 
         capture = cv2.VideoCapture(args.camera_url)
@@ -71,18 +70,18 @@ def main(logger):
                 print("Input video file ", args.input, " doesn't exist")
                 sys.exit(1)
             capture = cv2.VideoCapture(args.input)
-
+    print("DONE")
     # Initialize model
     model = exp.get_model()
 
     # Initialize byte_tracker
-    ByteTracker = BYTETracker(args, frame_rate=30)
+    # ByteTracker = BYTETracker(args, frame_rate=30)
 
     # Get video information
     video_info = VideoInfo.from_video(capture)
 
     # # Initialize tracking
-    track = Tracking(logger=logger, model=model, video_info=video_info, tracker=ByteTracker, args=args)
+    track = Tracking(logger=logger, model=model, video_info=video_info, tracker=None, args=args)
     track.load_model(weights_path=args.ckpt, classes=args.classes_path, device=args.device)
     track.init_drawer(polygons=POLYGONS)
 
