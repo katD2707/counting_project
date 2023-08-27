@@ -202,12 +202,12 @@ class Detections:
             >>> detections = sv.Detections.from_yolov5(result)
             ```
         """
-        yolox_detections_predictions = yolox_results.cpu().cpu().numpy()
+        yolox_detections_predictions = yolox_results.cpu().numpy()
         return cls(
             xyxy=yolox_detections_predictions[:, :4],
             confidence=yolox_detections_predictions[:, 4],
-            tracker_id=yolox_detections_predictions[:, 5].astype(int),
-            class_id=yolox_detections_predictions[:, 6].astype(int),
+            tracker_id=None,
+            class_id=yolox_detections_predictions[:, 5].astype(int),
         )
 
     @classmethod

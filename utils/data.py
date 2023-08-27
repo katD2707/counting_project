@@ -43,12 +43,12 @@ def make_divisible(x, divisor):
     return np.ceil(x / divisor) * divisor
 
 
-def check_img_size(img_size, stride=32):
+def check_img_size(img_size: np.ndarray, stride=32):
     # Verify img_size is a multiple of stride s
     new_size = make_divisible(img_size, int(stride))  # ceil gs-multiple
     if (new_size != img_size).any():
         print('WARNING: --img-size %s must be multiple of max stride %g, updating to %s' % (str(img_size), stride, str(new_size)))
-    return new_size
+    return new_size.astype(np.int32).tolist()
 
 
 def class2id(classes_path):

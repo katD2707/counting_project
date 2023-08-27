@@ -15,9 +15,9 @@ import datetime
 
 from tracking import Tracking
 from yolox.exp import get_exp
-# from tracker.byte_tracker.byte_tracker import BYTETracker
-# from tracker.center_tracker.centroid_tracker import CentroidTracker
-# from tracker.center_tracker.trackableobject import TrackableObject
+from tracker.byte_tracker.core import ByteTracker
+from tracker.center_tracker.centroid_tracker import CentroidTracker
+from tracker.center_tracker.trackableobject import TrackableObject
 from utils.video import VideoInfo
 
 ###### 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
@@ -48,6 +48,11 @@ def parse_arguments():
                     help="Standardize input before fit to model")
     ap.add_argument("--rgb_std", type=bool, default=True,
                     help="Standardize input before fit to model")
+
+    # Tracker parameter
+    ap.add_argument("--track_thres", type=float, default=0.25)
+    ap.add_argument("--track_buffer", type=int, default=30)
+    ap.add_argument("--match_thres", type=float, default=0.8)
 
     args = ap.parse_args()
 
@@ -86,13 +91,13 @@ def main(logger):
     model = exp.get_model()
 
     # Initialize byte_tracker
-    # ByteTracker = BYTETracker(args, frame_rate=30)
+    tracker = ByteTracker(args, frame_rate=30)
 
     # Get video information
     video_info = VideoInfo.from_video(capture)
 
     # # Initialize tracking
-    track = Tracking(logger=logger, model=model, video_info=video_info, tracker=None, args=args)
+    track = Tracking(logger=logger, model=model, video_info=video_info, tracker=tracker, args=args)
     track.load_model(weights_path=args.ckpt, classes_path=args.classes_path, device=args.device)
     track.init_drawer(polygons=POLYGONS)
 
@@ -111,11 +116,10 @@ def main(logger):
         # Outputs is list of frame, each with detected boxes
         outputs, image_infos = track.detect(img=frame)
 
-        '''
         # If no object is detected
         online_targets = torch.Tensor([[-1, -1, -1, -1, -1, -1, -1]])
         if outputs[0] is not None:
-            online_targets = track.track(outputs[0], [image_infos['height'], image_infos['width']], class_name=args.class_name)
+            online_targets = track.track(outputs[0], image_infos, class_name=args.class_name)
 
         # Annotate video with tracked objects
         frame = track.annotate(frame, online_targets)
@@ -127,7 +131,7 @@ def main(logger):
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
-        '''
+
     # close any open windows
     cv2.destroyAllWindows()
     track.unload()
