@@ -20,7 +20,8 @@ from yolox.exp import get_exp
 # from tracker.center_tracker.trackableobject import TrackableObject
 from utils.video import VideoInfo
 
-
+###### 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
+###### Token for loading
 POLYGONS = []
 
 def parse_arguments():
@@ -37,12 +38,16 @@ def parse_arguments():
     ap.add_argument("-n", "--name", type=str, default=None,
                     help="Experiment name")
     ap.add_argument("-cn", "--class_name", type=str, default="person")
-    ap.add_argument("-cp", "--classes_path", type=str, default="classes\coco.yaml")
+    ap.add_argument("-cp", "--classes_path", type=str, default="classes/coco.yaml")
     ap.add_argument("-d", "--device", type=str, default="cuda:0")
 
     # Model parameter
-    ap.add_argument("--model_size_wh", type=list, default=[640],
+    ap.add_argument("--model_size_hw", type=list, default=640,
                     help="Size of image fitting to the model, the smaller, the quicker")
+    ap.add_argument("--rgb_means", type=bool, default=True,
+                    help="Standardize input before fit to model")
+    ap.add_argument("--rgb_std", type=bool, default=True,
+                    help="Standardize input before fit to model")
 
     args = ap.parse_args()
 
@@ -105,8 +110,7 @@ def main(logger):
 
         # Outputs is list of frame, each with detected boxes
         outputs, image_infos = track.detect(img=frame)
-        print(outputs[0].size())
-        break
+
         '''
         # If no object is detected
         online_targets = torch.Tensor([[-1, -1, -1, -1, -1, -1, -1]])

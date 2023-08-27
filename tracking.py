@@ -31,7 +31,7 @@ class Tracking:
 
             stride = self.model.strides.max()
 
-            self.model_size_wh = check_img_size(self.setting.model_size_wh, stride=stride)
+            self.model_size_hw = check_img_size(np.array(self.setting.model_size_hw), stride=stride)
             self.classes = class2id(classes_path=classes_path)
 
     def unload(self):
@@ -75,7 +75,7 @@ class Tracking:
         ]
 
     def _preprocess_image(self, img):
-        img = letterbox(img, self.model_size_wh[::-1], auto=self.image_size_wh!=1280)
+        img = letterbox(img, self.model_size_wh[::-1], auto=self.model_size_hw!=1280)
         img = img[:, :, ::-1]
 
         img = np.divide(img, 255.0, casting="unsafe")
@@ -95,8 +95,8 @@ class Tracking:
 
     def _postprocess_image(self, pred):
         return boxes.postprocess(prediction=pred,
-                                 conf_thre=self.setting.conf_thre,
-                                 nms_thre=self.setting.nms_thre,
+                                 conf_thres=self.setting.conf_thres,
+                                 nms_thres=self.setting.nms_thres,
                                  multi_label=False,
                                  agnostic=False,
                                  )
