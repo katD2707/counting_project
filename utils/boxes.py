@@ -31,14 +31,14 @@ def filter_box(output, scale_range):
     return output[keep]
 
 
-def postprocess(prediction, conf_thre=0.7, nms_thre=0.45, multi_label=False, agnostic=False):
+def postprocess(prediction, conf_thres=0.7, nms_thres=0.45, multi_label=False, agnostic=False):
     """Runs Non-Maximum Suppression (NMS) on inference results
 
         Returns:
              list of detections, on (n,6) tensor per image [xyxy, conf, cls]
         """
     nc = prediction.shape[2] - 5  # number of classes
-    xc = prediction[..., 4] > conf_thre  # candidates
+    xc = prediction[..., 4] > conf_thres  # candidates
 
     # Settings
     max_wh = 4096  # (pixels) minimum and maximum box width and height
@@ -65,25 +65,25 @@ def postprocess(prediction, conf_thre=0.7, nms_thre=0.45, multi_label=False, agn
 
         # Detections matrix nx6 (xyxy, conf_score, cls_pred)
         if multi_label:
-            i, j = (x[:, 5:] > conf_thre).nonzero(as_tuple=False).T
+            i, j = (x[:, 5:] > conf_thres).nonzero(as_tuple=False).T
             x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
             class_conf, class_pred = x[:, 5:].max(1, keepdim=True)
-            x = torch.cat((box, class_conf, class_pred.float()), 1)[class_conf.view(-1) > conf_thre]
+            x = torch.cat((box, class_conf, class_pred.float()), 1)[class_conf.view(-1) > conf_thres]
 
         # Check shape
         n = x.shape[0]  # number of boxes
         if not n:  # no boxes
             continue
         elif n > max_nms:  # excess boxes
-            x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence
+            x = x[x[:, 4].argsort(descending=True)][:max_nms]  # sort by confidence
 
         # Batched NMS
         nms_out_index = torchvision.ops.batched_nms(
             x[:, :4],
             x[:, 4],
-            x[:, 6],
-            nms_thre,
+            x[:, 5],
+            nms_thres,
         )
 
         if nms_out_index.shape[0] > max_det:  # limit detections

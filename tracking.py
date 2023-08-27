@@ -17,7 +17,7 @@ class Tracking:
         self.setting = args
         self.logger = logger
 
-    def load_model(self, weights_path, classes, device='cpu'):
+    def load_model(self, weights_path, classes_path, device='cpu'):
         with torch.no_grad():
             self.device = torch_utils.select_device(device)
             if device != "cpu":
@@ -31,8 +31,8 @@ class Tracking:
 
             stride = self.model.strides.max()
 
-            self.image_size_wh = check_img_size(self.video_info.resolution_wh, stride=stride)
-            self.classes = class2id(classes_path=classes)
+            self.model_size_wh = check_img_size(self.setting.model_size_wh, stride=stride)
+            self.classes = class2id(classes_path=classes_path)
 
     def unload(self):
         if self.device.type != "cpu":
@@ -75,8 +75,7 @@ class Tracking:
         ]
 
     def _preprocess_image(self, img):
-        img0 = img.copy()
-        img = letterbox(img, self.image_size_wh[::-1], auto=self.image_size_wh!=1280)
+        img = letterbox(img, self.model_size_wh[::-1], auto=self.image_size_wh!=1280)
         img = img[:, :, ::-1]
 
         img = np.divide(img, 255.0, casting="unsafe")
@@ -92,7 +91,7 @@ class Tracking:
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
 
-        return img0, img
+        return img
 
     def _postprocess_image(self, pred):
         return boxes.postprocess(prediction=pred,
@@ -116,11 +115,11 @@ class Tracking:
         img_info["raw_img"] = img
 
         with torch.no_grad():
-            # org_img: [w, h, 3]
-            # img: [1, 3, w, h]
-            org_img, img = self._preprocess_image(img)
+            # org_img: [h, w, 3]
+            # img: [1, 3, h, w]
+            img = self._preprocess_image(img)
             # Model outputs: [B, n_anchors, detect_attrs]
-            # Detections attrs ordered as (x1, y1, x2, y2, obj_conf, class_1, class_2, ...)
+            # Detections attrs ordered as (x_center, y_center, w, h, obj_conf, class_1, class_2, ...)
             pred = self.model(img)
             # Post-process results ordered as (x1, y1, x2, y2, score, class)
             pred = self._postprocess_image(pred)

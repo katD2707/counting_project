@@ -36,8 +36,13 @@ def parse_arguments():
                     help=" path to optional output video file")
     ap.add_argument("-n", "--name", type=str, default=None,
                     help="Experiment name")
+    ap.add_argument("-cn", "--class_name", type=str, default="person")
     ap.add_argument("-cp", "--classes_path", type=str, default="classes\coco.yaml")
     ap.add_argument("-d", "--device", type=str, default="cuda:0")
+
+    # Model parameter
+    ap.add_argument("--model_size_wh", type=list, default=[640],
+                    help="Size of image fitting to the model, the smaller, the quicker")
 
     args = ap.parse_args()
 
@@ -70,7 +75,8 @@ def main(logger):
                 print("Input video file ", args.input, " doesn't exist")
                 sys.exit(1)
             capture = cv2.VideoCapture(args.input)
-    print("DONE")
+
+
     # Initialize model
     model = exp.get_model()
 
@@ -82,10 +88,10 @@ def main(logger):
 
     # # Initialize tracking
     track = Tracking(logger=logger, model=model, video_info=video_info, tracker=None, args=args)
-    track.load_model(weights_path=args.ckpt, classes=args.classes_path, device=args.device)
+    track.load_model(weights_path=args.ckpt, classes_path=args.classes_path, device=args.device)
     track.init_drawer(polygons=POLYGONS)
 
-    '''
+
     # loop over frames from the video stream
     while True:
         # grab the next frame and handle if we are reading from either
@@ -99,6 +105,9 @@ def main(logger):
 
         # Outputs is list of frame, each with detected boxes
         outputs, image_infos = track.detect(img=frame)
+        print(outputs[0].size())
+        break
+        '''
         # If no object is detected
         online_targets = torch.Tensor([[-1, -1, -1, -1, -1, -1, -1]])
         if outputs[0] is not None:
@@ -114,7 +123,7 @@ def main(logger):
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
-    '''
+        '''
     # close any open windows
     cv2.destroyAllWindows()
     track.unload()
