@@ -138,7 +138,7 @@ class Tracking:
         if class_name:
             preds = preds[preds[:, 5]==self.classes[class_name]]
 
-        img_h, img_w = img_info["height"], img_info["weight"]
+        img_h, img_w = img_info["raw_height"], img_info["raw_width"]
         scale = min(img_info["transform_hw"][0] / float(img_h), img_info["transform_hw"][1] / float(img_w))
         preds[:, :4] /= scale
         preds = Detections.from_yolox(yolox_results=preds)
