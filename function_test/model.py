@@ -26,53 +26,53 @@ from utils.video import VideoInfo
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
-from gui_screen.main_screen import Ui_MainWindow
+from gui.main_screen import Ui_MainWindow
 
 ###### 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
 ###### Token for loading
-POLYGONS =  [
-    np.array([
-        [540,  985 ],
-        [1620, 985 ],
-        [2160, 1920],
-        [1620, 2855],
-        [540,  2855],
-        [0,    1920]
-    ], np.int32),
-    np.array([
-        [0,    1920],
-        [540,  985 ],
-        [0,    0   ]
-    ], np.int32),
-    np.array([
-        [1620, 985 ],
-        [2160, 1920],
-        [2160,    0]
-    ], np.int32),
-    np.array([
-        [540,  985 ],
-        [0,    0   ],
-        [2160, 0   ],
-        [1620, 985 ]
-    ], np.int32),
-    np.array([
-        [0,    1920],
-        [0,    3840],
-        [540,  2855]
-    ], np.int32),
-    np.array([
-        [2160, 1920],
-        [1620, 2855],
-        [2160, 3840]
-    ], np.int32),
-    np.array([
-        [1620, 2855],
-        [540,  2855],
-        [0,    3840],
-        [2160, 3840]
-    ], np.int32)
-]
-# POLYGONS = []
+# POLYGONS =  [
+#     np.array([
+#         [540,  985 ],
+#         [1620, 985 ],
+#         [2160, 1920],
+#         [1620, 2855],
+#         [540,  2855],
+#         [0,    1920]
+#     ], np.int32),
+#     np.array([
+#         [0,    1920],
+#         [540,  985 ],
+#         [0,    0   ]
+#     ], np.int32),
+#     np.array([
+#         [1620, 985 ],
+#         [2160, 1920],
+#         [2160,    0]
+#     ], np.int32),
+#     np.array([
+#         [540,  985 ],
+#         [0,    0   ],
+#         [2160, 0   ],
+#         [1620, 985 ]
+#     ], np.int32),
+#     np.array([
+#         [0,    1920],
+#         [0,    3840],
+#         [540,  2855]
+#     ], np.int32),
+#     np.array([
+#         [2160, 1920],
+#         [1620, 2855],
+#         [2160, 3840]
+#     ], np.int32),
+#     np.array([
+#         [1620, 2855],
+#         [540,  2855],
+#         [0,    3840],
+#         [2160, 3840]
+#     ], np.int32)
+# ]
+POLYGONS = []
 
 def parse_arguments():
     # function to parse the arguments
@@ -167,19 +167,18 @@ def main(logger):
     # start User interface
     app = QApplication(sys.argv)
     # main_win = MainWindow(video=capture, track=track, vid_writer=vid_writer)
-    main_win = MainWindow(video=capture, track=track, class_name=args.class_name)
+    main_win = MainWindow(video=capture, track=track)
     main_win.show()
     sys.exit(app.exec())
 
 
 class MainWindow:
-    def __init__(self, video, track, vid_writer=None, class_name=None):
+    def __init__(self, video, track, vid_writer=None):
         self.main_win = QMainWindow()
 
         self.video = video
         self.track = track
         self.vid_writer = vid_writer
-        self.class_name = class_name
 
         self.uic = Ui_MainWindow()
 
@@ -192,7 +191,7 @@ class MainWindow:
         self.thread = {}
 
     def start_capture_video(self):
-        self.thread[1] = track_video(index=1, video=self.video, track=self.track, vid_writer=self.vid_writer, class_name=self.class_name)
+        self.thread[1] = track_video(index=1, video=self.video, track=self.track, vid_writer=self.vid_writer)
         self.thread[1].signal.connect(self.show_cam)
         self.thread[1].start()
 
@@ -208,7 +207,7 @@ class MainWindow:
 
 class track_video(QThread):
     signal = pyqtSignal(QImage)
-    def __init__(self, index, video, track, vid_writer=None, class_name=None):
+    def __init__(self, index, video, track, vid_writer=None):
         self.index = index
         print("start threading", self.index)
         self.__thread_active = True
@@ -218,7 +217,6 @@ class track_video(QThread):
         self.video = video
         self.track = track
         self.vid_writer = vid_writer
-        self.class_name = class_name
         super(track_video, self).__init__()
 
     def run(self):
@@ -232,21 +230,20 @@ class track_video(QThread):
                         # have reached the end of the video
                         if frame is None:
                             break
-                        '''
+
                         # Outputs is list of frame, each with detected boxes
                         outputs, image_infos = self.track.detect(img=frame)
                         # print(outputs[0].shape)
                         # # If no object is detected
                         online_targets = torch.Tensor([[-1, -1, -1, -1, -1, -1, -1]])
                         if outputs[0] is not None:
-                            online_targets = self.track.track(outputs[0], image_infos, class_name=self.class_name)
+                            online_targets = self.track.track(outputs[0], image_infos, class_name=args.class_name)
 
                         # Annotate video with tracked objects
                         frame = self.track.annotate(frame, online_targets)
 
                         if self.vid_writer:
                             self.vid_writer.write(frame)
-                        '''
 
                         # rgb = frame.permute(1, 2, 0).numpy()
                         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
